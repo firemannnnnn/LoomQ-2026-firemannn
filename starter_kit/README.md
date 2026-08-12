@@ -44,6 +44,8 @@
 │   result.py      统一结果 Schema（backend/job_id/counts/…）  │
 ├────────────────────────────────────────────────────────────┤
 │ L3  l3_compiler.py → riscv_emulator.py（Hybrid-QASM 编译执行）│
+│ Bonus  quantum_riscv.py → riscv_quantum_emulator.py          │
+│       （量子门编码为 RISC-V custom-0 指令，见 docs/quantum_riscv_spec.md）│
 │ LLM  llm_client.py（urllib OpenAI-compatible 传输）          │
 │ 选后端  backend_capabilities.json（6 后端能力表）              │
 └────────────────────────────────────────────────────────────┘
@@ -77,6 +79,7 @@ python3 selfcheck_l1_hidden.py       # QFT-4 / Grover-3 / Random×3 隐藏电路
 python3 selfcheck_l2.py              # L2 六项回归（生成/纠错/选后端/追问/缺配置不泄露 Key）
 python3 selfcheck_l2_variants.py     # L2 十四例变体压力测试
 python3 selfcheck_l3.py              # L3 混合编译端到端
+python3 selfcheck_bonus_riscv.py     # Bonus：量子 RISC-V 扩展指令（48 项）
 
 # ③ L2 交互 Web 控制台（浏览器打开 http://127.0.0.1:8787/）
 export LOOMQ_LLM_BASE_URL=https://api.deepseek.com

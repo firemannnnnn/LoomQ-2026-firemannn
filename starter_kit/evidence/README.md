@@ -11,7 +11,7 @@
 - [x] L1 真机
 - [x] L2 交互体验
 - [x] 工程与产品化
-- [ ] 自定义量子 RISC-V Bonus
+- [x] 自定义量子 RISC-V Bonus
 - [ ] 新手引导与视觉叙事 Bonus
 
 ## L1 真机
@@ -75,10 +75,13 @@ evidence/files/spinq-screenshot.png
 以下三项必须齐全且测试通过，才获得 8 分：
 
 ```text
-指令编码规格：[填写文档路径]
-模拟器扩展实现：[填写代码路径]
-端到端测试命令：[填写命令或文档路径]
+指令编码规格：docs/quantum_riscv_spec.md
+模拟器扩展实现：riscv_quantum_emulator.py（fork 官方 TinyRISCVEmulator，新增 LQE 量子指令）
+          编码器：quantum_riscv.py（custom-0 opcode 编解码，12 门白名单全覆盖）
+端到端测试命令：python3 selfcheck_bonus_riscv.py（48 项全部通过）
 ```
+
+测试覆盖：编码规格字段校验（opcode/funct3/funct7 位布局）、13 条指令编解码往返、状态向量演化与独立参考矩阵交叉验证（GHZ-2/Bell/qx/qry/qrz/qcu1/qccx/qt/qs）、测量驱动经典分支、二进制加载（load_binary）、Hybrid-QASM 混合流水线、官方 L3 用例在扩展模拟器上的回归兼容。
 
 ## 新手引导与视觉叙事 Bonus
 
