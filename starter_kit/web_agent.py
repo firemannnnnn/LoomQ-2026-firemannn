@@ -7,7 +7,8 @@ any QASM the agent produces through our own L1 simulator and visualizes the
 measurement counts, so "I don't read code" users can still see a result.
 
 Run:
-    python web_agent.py [--host 127.0.0.1] [--port 8787]
+    python web_agent.py            # binds 0.0.0.0:$PORT (Render) or 0.0.0.0:8787 locally
+    python web_agent.py --host 127.0.0.1 --port 8787   # local-only
 
 Routes:
     GET  /            chat page
@@ -21,6 +22,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Dict, Optional, Tuple
@@ -430,8 +432,8 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="LoomQ L2 interactive web console")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8787)
+    parser.add_argument("--host", default="0.0.0.0")  # 0.0.0.0: reachable from LAN / Render
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8787")))
     args = parser.parse_args()
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     url = f"http://{args.host}:{args.port}"

@@ -1,0 +1,22 @@
+# Render Blueprint for the LoomQ L2 interactive web console.
+#
+# Deploy: dashboard.render.com -> New + -> Blueprint -> connect this GitHub repo.
+# The service runs only the starter_kit web console; no credentials are committed.
+# LLM integration is optional: leave LOOMQ_LLM_* empty and the page shows a
+# "model not ready" LED while backend-recommendation tasks still work offline.
+services:
+  - type: web
+    name: loomq-console
+    runtime: python
+    rootDir: starter_kit
+    plan: free
+    buildCommand: ""
+    startCommand: python web_agent.py
+    healthCheckPath: /api/health
+    envVars:
+      - key: LOOMQ_LLM_BASE_URL
+        sync: false
+      - key: LOOMQ_LLM_API_KEY
+        sync: false
+      - key: LOOMQ_LLM_MODEL
+        sync: false
