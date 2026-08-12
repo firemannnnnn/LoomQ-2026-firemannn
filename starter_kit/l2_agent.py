@@ -49,7 +49,8 @@ _SYSTEM_PROMPT = """你是 LoomQ 量子编程助手，帮助没有量子背景�
 4. 回复保持简洁，除代码块外不要多余解释；如果无法满足，如实说明。"""
 
 _SELECT_STRONG = re.compile(
-    r"选.{0,8}平台|推荐.{0,4}后端|哪个后端|backend|simulator|排队|queue|费用|cost|零排队|有哪几个|哪个平台",
+    r"选.{0,8}(平台|后端|模拟器|设备)|推荐.{0,4}后端|哪个后端|backend|simulator|"
+    r"模拟器|排队|queue|费用|cost|零排队|有哪几个|哪个平台",
     re.IGNORECASE,
 )
 _SELECT_WEAK = re.compile(r"平台|比特|qubit|模拟器|免费|账号|花钱|不需要账号", re.IGNORECASE)
@@ -75,6 +76,9 @@ def _load_backend_knowledge() -> List[Dict[str, Any]]:
 
 
 def _looks_like_backend_selection(prompt: str) -> bool:
+    # Follow-up questions ("为什么/怎么/解释") are chat, not tool calls.
+    if re.search(r"为什么|怎么|是什么|解释|告诉我", prompt):
+        return False
     if _SELECT_STRONG.search(prompt):
         return True
     if _GENERATE_HINT.search(prompt):
