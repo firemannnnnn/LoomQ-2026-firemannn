@@ -5,3 +5,7 @@
 **/.DStore
 __pycache__/
 *.py[cod]
+
+# local-only SDK smoke-test artifacts (copied from amazon-braket-sdk)
+starter_kit/stdgates.inc
+*.loomq-report.json

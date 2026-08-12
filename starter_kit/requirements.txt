@@ -1,5 +1,13 @@
-# Public evaluator baseline: no third-party dependencies.
-# Add project dependencies below and pin every version exactly, for example:
-# amazon-braket-sdk==<tested-version>
-# spinqit==<tested-version>
-# pyqpanda==<tested-version>
+# LoomQ submission dependencies.
+#
+# L1 (transpile/run) and L3 (compile_hybrid) are implemented with a
+# dependency-free intermediate layer (loomq_core): the state-vector simulator
+# and all target-IR renderers use only the Python standard library, so the
+# organizer's isolated build environment needs no network installs.
+#
+# L2 (agent_chat) talks to the organizer-injected DeepSeek service via the
+# standard urllib transport in llm_client.py — no extra packages required.
+#
+# Real-hardware / local-SDK smoke testing is done separately during
+# development (spinqit==0.2.4, pyqpanda==3.8.5, amazon-braket-sdk==1.83.0)
+# and is intentionally NOT part of the scored runtime.
