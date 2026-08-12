@@ -9,3 +9,6 @@ __pycache__/
 # local-only SDK smoke-test artifacts (copied from amazon-braket-sdk)
 starter_kit/stdgates.inc
 *.loomq-report.json
+
+# local test artifacts (not part of the judged submission)
+starter_kit/report.json
