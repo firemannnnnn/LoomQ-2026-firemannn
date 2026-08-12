@@ -49,12 +49,17 @@ _SYSTEM_PROMPT = """你是 LoomQ 量子编程助手，帮助没有量子背景�
 4. 回复保持简洁，除代码块外不要多余解释；如果无法满足，如实说明。"""
 
 _SELECT_STRONG = re.compile(
-    r"选.{0,8}平台|推荐.{0,4}后端|哪个后端|backend|simulator|排队|queue|费用|cost|零排队",
+    r"选.{0,8}平台|推荐.{0,4}后端|哪个后端|backend|simulator|排队|queue|费用|cost|零排队|有哪几个|哪个平台",
     re.IGNORECASE,
 )
-_SELECT_WEAK = re.compile(r"平台|比特|qubit", re.IGNORECASE)
+_SELECT_WEAK = re.compile(r"平台|比特|qubit|模拟器|免费|账号|花钱|不需要账号", re.IGNORECASE)
 _GENERATE_HINT = re.compile(
-    r"生成|制备|构造|创建|写.{0,4}(一个|段|个)?|给我|纠错|修复|改正|修好|报错|帮我",
+    r"生成|制备|构造|创建|写.{0,4}(一个|段|个)?|给我|纠错|修复|改正|修好|报错|帮我|"
+    r"create|generate|build|prepare|make|write|fix|repair|correct|error",
+    re.IGNORECASE,
+)
+_CIRCUIT_HINT = re.compile(
+    r"qasm|量子|电路|比特|qubit|qreg|creg|纠缠|叠加|ghz|bell|贝尔|测量|门|寄存器|态|线路|h\s*q|cx\s*q",
     re.IGNORECASE,
 )
 
@@ -75,6 +80,20 @@ def _looks_like_backend_selection(prompt: str) -> bool:
     if _GENERATE_HINT.search(prompt):
         return False
     return bool(_SELECT_WEAK.search(prompt))
+
+
+def _looks_like_chat(prompt: str) -> bool:
+    """Plain conversation / follow-up question (no circuit-task signals)."""
+    # Generation/repair intent wins over chat-signal words like "怎么".
+    if _GENERATE_HINT.search(prompt):
+        return False
+    if re.search(r"介绍|是什么|为什么|怎么|请问|你好|谢谢|意思|区别|原理|解释|告诉我", prompt):
+        return True
+    if _looks_like_backend_selection(prompt):
+        return False
+    if _CIRCUIT_HINT.search(prompt):
+        return False
+    return True
 
 
 def _extract_qasm(reply: str) -> Optional[str]:
@@ -225,6 +244,22 @@ def _call(messages: List[Dict[str, Any]]) -> str:
     return str(content)
 
 
+def _chat_reply(prompt: str) -> str:
+    """Plain conversation branch: natural-language answer, no QASM required."""
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "你是 LoomQ 量子助手，帮助没有量子背景的用户。用户可能提出一般性问题"
+                "或追问（例如'为什么推荐这个后端'、'测量结果是什么意思'）。请用通俗易懂"
+                "的中文直接回答，不要输出 OpenQASM 代码。"
+            ),
+        },
+        {"role": "user", "content": prompt},
+    ]
+    return _call(messages)
+
+
 def agent_chat(prompt: str) -> str:
     """Public L2 entry point. Reads LOOMQ_LLM_* configuration via llm_client."""
     if not isinstance(prompt, str) or not prompt.strip():
@@ -233,6 +268,10 @@ def agent_chat(prompt: str) -> str:
     # Task 1: backend selection (tool-like, table-driven).
     if _looks_like_backend_selection(prompt):
         return _backend_recommendation(prompt)
+
+    # Plain conversation / follow-up question: natural answer, no QASM.
+    if _looks_like_chat(prompt):
+        return _chat_reply(prompt)
 
     # Task 2 & 3: generate or repair a circuit, with self-verification loop.
     messages: List[Dict[str, Any]] = [
