@@ -21,8 +21,11 @@ class MockHandler(BaseHTTPRequestHandler):
         last_user = user_msgs[-1]["content"] if user_msgs else ""
         prompt = last_user
         # Simulate a model that emits a GHZ qasm for generation/repair tasks,
-        # and a canonical backend id for selection tasks.
-        if "backend" in prompt or "平台" in prompt or "排队" in prompt:
+        # a canonical backend id for selection tasks, and a PASS verdict for
+        # LLM-based semantic confirmation round-trips.
+        if "模拟器测量分布" in prompt:
+            content = "PASS"
+        elif "backend" in prompt or "平台" in prompt or "排队" in prompt:
             content = "推荐使用 AWS Braket 本地模拟器，规范标识：braket_local_simulator"
         else:
             content = "```qasm\n" + QASM_GHZ + "\n```"
@@ -60,6 +63,14 @@ def main():
         print("=== 任务3: 智能选后端 ===")
         r3 = adapter.agent_chat("我需要运行一个 15 比特电路，且零排队等待，选哪个平台？")
         print("回复包含规范标识:", "braket_local_simulator" in r3)
+
+        print("=== 回归1: 生成任务不被误判为选后端 ===")
+        r4 = adapter.agent_chat("生成一个 3 比特的 GHZ 态并进行全测量")
+        print("走生成分支(含QASM且非后端id):", "OPENQASM" in r4 and "braket_local_simulator" not in r4)
+
+        print("=== 回归2: 未知目标态走 LLM 语义确认 ===")
+        r5 = adapter.agent_chat("制备一个 3 比特 W 态")
+        print("LLM确认后返回QASM:", "OPENQASM" in r5)
 
         print("=== 缺配置立即失败(不泄露Key) ===")
         import l2_agent
